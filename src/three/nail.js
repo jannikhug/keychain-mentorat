@@ -47,12 +47,12 @@ export function createNailInteraction(camera, keychain, mainRingMesh) {
     if (dist < SNAP_THRESHOLD_PX) snap(nailPos);
   }
 
-  function getNailHeadEl() {
+  function getNailHead() {
     return document.querySelector('.nail .nail-image');
   }
 
   function setNailHeadZIndex(z) {
-    const el = getNailHeadEl();
+    const el = getNailHead();
     if (el) el.style.zIndex = z;
   }
 

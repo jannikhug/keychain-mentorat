@@ -38,6 +38,7 @@ const PENDANT_LABELS = {
   Key: 'Key',
 };
 
+// Listener for click label and key
 window.addEventListener('click', () => {
   if (physicsActive || !hoveredPendant) return;
   gsap.killTweensOf(pendantLabelEl);
@@ -50,6 +51,7 @@ window.addEventListener('click', () => {
   gsap.fromTo(pendantLabelEl, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
 });
 
+// Listener for hover label and Key
 window.addEventListener('mousemove', (e) => {
   mouseNormX = (e.clientX / window.innerWidth - 0.5) * 2;
   mouseNormY = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -81,7 +83,7 @@ window.addEventListener('mousemove', (e) => {
   }
 });
 
-// Render while model loads
+// Model Loading and Animations
 let basicRafId;
 function basicAnimate() {
   renderer.render(scene, camera);
@@ -139,6 +141,62 @@ function playInitialAnimation() {
   });
 }
 
+function animate() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+
+  if (keychain) {
+    if (physicsActive) {
+      drag.update(dt);
+      if (keychainPhysics) keychainPhysics.update();
+    } else {
+      if (!nailActive || !nailInteracted) {
+        keychain.position.y = Math.sin(Date.now() * 0.001 * floatSpeed) * floatAmplitude;
+      } else {
+        nailInteraction.update(dt);
+      }
+
+      if (mouseActive) {
+        const targetX = NEUTRAL_ROT_X + mouseNormY * MAX_ROT_X;
+        const targetY = NEUTRAL_ROT_Y + mouseNormX * MAX_ROT_Y;
+        keychain.rotation.x += (targetX - keychain.rotation.x) * 0.05;
+        keychain.rotation.y += (targetY - keychain.rotation.y) * 0.05;
+      }
+
+      const hanging = nailActive && nailInteraction?.isHanging();
+      if (hanging) {
+        for (const swing of swingTargets) {
+          swing.pivot.rotation.z += (swing.baseRotationZ - swing.pivot.rotation.z) * 0.12;
+        }
+      } else {
+        const t = Date.now() * 0.001;
+        const floatVelocity = Math.cos((t - swingDelay) * floatSpeed);
+        for (const swing of swingTargets) {
+          swing.pivot.rotation.z = swing.baseRotationZ + swing.sign * floatVelocity * swingAmplitude;
+        }
+      }
+    }
+  }
+
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+
+// Scroll Triggers
+ScrollTrigger.create({
+  trigger: '.physics',
+  start: 'top center',
+  onEnter: activatePhysics,
+  onLeaveBack: deactivatePhysics,
+});
+
+ScrollTrigger.create({
+  trigger: '.nail',
+  start: 'top center',
+  onEnter: activateNail,
+  onLeaveBack: deactivateNail,
+});
+
+// Activations for ScrollTriggers
 async function activatePhysics() {
   if (physicsActive || !keychainInner) return;
   physicsActive = true;
@@ -199,58 +257,4 @@ function deactivateNail() {
   gsap.to(keychain.position, { x: 0, z: 0, duration: 0.4, ease: 'power2.out' });
   gsap.to(keychain.rotation, { x: NEUTRAL_ROT_X, y: NEUTRAL_ROT_Y, duration: 0.6, ease: 'power2.out' });
   mouseActive = true;
-}
-
-ScrollTrigger.create({
-  trigger: '.physics',
-  start: 'top center',
-  onEnter: activatePhysics,
-  onLeaveBack: deactivatePhysics,
-});
-
-ScrollTrigger.create({
-  trigger: '.nail',
-  start: 'top center',
-  onEnter: activateNail,
-  onLeaveBack: deactivateNail,
-});
-
-function animate() {
-  const dt = Math.min(clock.getDelta(), 0.05);
-
-  if (keychain) {
-    if (physicsActive) {
-      drag.update(dt);
-      if (keychainPhysics) keychainPhysics.update();
-    } else {
-      if (!nailActive || !nailInteracted) {
-        keychain.position.y = Math.sin(Date.now() * 0.001 * floatSpeed) * floatAmplitude;
-      } else {
-        nailInteraction.update(dt);
-      }
-
-      if (mouseActive) {
-        const targetX = NEUTRAL_ROT_X + mouseNormY * MAX_ROT_X;
-        const targetY = NEUTRAL_ROT_Y + mouseNormX * MAX_ROT_Y;
-        keychain.rotation.x += (targetX - keychain.rotation.x) * 0.05;
-        keychain.rotation.y += (targetY - keychain.rotation.y) * 0.05;
-      }
-
-      const hanging = nailActive && nailInteraction?.isHanging();
-      if (hanging) {
-        for (const swing of swingTargets) {
-          swing.pivot.rotation.z += (swing.baseRotationZ - swing.pivot.rotation.z) * 0.12;
-        }
-      } else {
-        const t = Date.now() * 0.001;
-        const floatVelocity = Math.cos((t - swingDelay) * floatSpeed);
-        for (const swing of swingTargets) {
-          swing.pivot.rotation.z = swing.baseRotationZ + swing.sign * floatVelocity * swingAmplitude;
-        }
-      }
-    }
-  }
-
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
 }

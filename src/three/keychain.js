@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 
+// For Swing Animation
 const SWING_SIGNS = {
   PendantAbout: -1,
   PendantWork: -1,
@@ -56,6 +57,7 @@ function createSwingPivot(obj, ringObj) {
   return pivot;
 }
 
+// Load model with DracoLoader
 export function loadKeychain(scene, camera) {
   return new Promise((resolve, reject) => {
     const loader = new GLTFLoader();
