@@ -1,0 +1,44 @@
+@font-face {
+    font-family: Skylight;
+    src: url("../font/Skylight-Grafitti.otf") format("opentype");
+}
+.skylight-header {
+  font-family: "Skylight", sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  color: var(--header);
+  mix-blend-mode: difference;
+  font-size: 14vw;
+  margin: 0;
+}
+
+.skylight-smaller-header {
+  font-family: "Skylight", sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  color: var(--header);
+  mix-blend-mode: difference;
+  font-size: 5vw;
+  margin: 0;
+}
+
+
+.schibsted-grotesk-paragraph {
+  font-family: "Schibsted Grotesk", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: bold;
+  font-style: normal;
+}
+
+
+
+html {
+  font-size: 16px; /* Basis = 1rem */
+}
+/* Typische Skala */
+h1 { font-size: clamp(2rem, 5vw, 5rem); }
+h2 { font-size: 2rem; }    /* 32px */
+h3 { font-size: 1.5rem; }  /* 24px */
+p  { font-size: clamp(1rem, 1.5vw, 1.25rem); }
+small{ font-size: 0.875rem; }/* 14px */
+

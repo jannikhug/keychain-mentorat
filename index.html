@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>My first three.js app</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/header.css">
+    <link rel="stylesheet" href="/styles/fonts.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+
+    <header>
+      <div class="header-items schibsted-grotesk-paragraph">
+        <p class="header-time" id="time"></p>
+        <p class="header-togglemode"> </p>
+        <button class="header-hamburger" aria-label="Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <nav class="nav-overlay">
+    </nav>
+
+    <div class="noise"></div>
+    <div class="gradient-bg"></div>
+    <div class="model"></div>
+
+    <section class="hero">
+      <h1 class="skylight-header hero-header">Jannik Hug</h1>
+      <h1 class="skylight-header hero-header-right">Creative Dev</h1>
+      <h2 class="skylight-smaller-header hero-pendant-label"></h2>
+    </section>
+
+    <section class="physics">
+      <p class="section-title schibsted-grotesk-paragraph">Physics</p>
+    </section>
+    <section class="rotate1">
+      <p class="section-title schibsted-grotesk-paragraph">Rotation Y-Axis</p>
+    </section>
+    <section class="rotate2">
+      <p class="section-title schibsted-grotesk-paragraph">Rotation Z-Axis</p>
+    </section>
+    <section class="nail" style="height: 90vh;">
+      <p class="section-title schibsted-grotesk-paragraph">Hang the Key</p>
+      <img class="nail-image" src="images/nail_head.png">
+      <img class="nail-image" src="images/nail_pin.png">
+    </section>
+
+    <script type="module" src="/src/index.js"></script>
+  </body>
+</html>
