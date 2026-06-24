@@ -33,6 +33,7 @@ export class KeychainPhysics {
     this._parentQuat = new THREE.Quaternion();
     this._ringRestoreData = [];
     this._dynamicRestoreData = [];
+    this._joints = [];
 
     this._addKinematic('MainRing');
     const mainRingObj = this.entries.get('MainRing').obj;
@@ -64,7 +65,7 @@ export class KeychainPhysics {
     for (const [ringName, pendantName] of Object.entries(PENDANT_BY_RING)) {
       this._addDynamic(pendantName, (g) => this.RAPIER.ColliderDesc.ball(2.2));
       // Anchored at the ring's original position, but jointed straight to
-      // MainRing's body since the ring itself no longer has one.
+      // MainRing's body
       this._addJoint('MainRing', pendantName, false, ringAnchors[ringName]);
     }
 
@@ -165,6 +166,31 @@ export class KeychainPhysics {
     );
     const joint = this.world.createImpulseJoint(jointData, a.body, b.body, true);
     joint.setContactsEnabled(contactsEnabled);
+    this._joints.push({ joint, a, b, localA, localB, contactsEnabled });
+  }
+
+  rescale(ratio) {
+    for (const entry of this.entries.values()) {
+      if (entry.kinematic) continue;
+      const t = entry.body.translation();
+      entry.body.setTranslation({ x: t.x * ratio, y: t.y * ratio, z: t.z * ratio }, true);
+      const v = entry.body.linvel();
+      entry.body.setLinvel({ x: v.x * ratio, y: v.y * ratio, z: v.z * ratio }, true);
+    }
+
+    const updated = [];
+    for (const jd of this._joints) {
+      this.world.removeImpulseJoint(jd.joint, true);
+      const lA = new THREE.Vector3(jd.localA.x * ratio, jd.localA.y * ratio, jd.localA.z * ratio);
+      const lB = new THREE.Vector3(jd.localB.x * ratio, jd.localB.y * ratio, jd.localB.z * ratio);
+      const newJoint = this.world.createImpulseJoint(
+        this.RAPIER.JointData.spherical({ x: lA.x, y: lA.y, z: lA.z }, { x: lB.x, y: lB.y, z: lB.z }),
+        jd.a.body, jd.b.body, true
+      );
+      newJoint.setContactsEnabled(jd.contactsEnabled);
+      updated.push({ joint: newJoint, a: jd.a, b: jd.b, localA: lA, localB: lB, contactsEnabled: jd.contactsEnabled });
+    }
+    this._joints = updated;
   }
 
   update() {

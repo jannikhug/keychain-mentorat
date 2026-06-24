@@ -20,6 +20,7 @@ let mouseNormY = 0;
 let mouseActive = false;
 let physicsActive = false;
 let keychainPhysics = null;
+let lastPhysicsScale = 1.5;
 let nailActive = false;
 let nailInteracted = false;
 let nailInteraction = null;
@@ -147,7 +148,14 @@ function animate() {
   if (keychain) {
     if (physicsActive) {
       drag.update(dt);
-      if (keychainPhysics) keychainPhysics.update();
+      if (keychainPhysics) {
+        const currentScale = keychain.scale.x;
+        if (Math.abs(currentScale - lastPhysicsScale) > 0.0001) {
+          keychainPhysics.rescale(currentScale / lastPhysicsScale);
+          lastPhysicsScale = currentScale;
+        }
+        keychainPhysics.update();
+      }
     } else {
       if (!nailActive || !nailInteracted) {
         keychain.position.y = Math.sin(Date.now() * 0.001 * floatSpeed) * floatAmplitude;
@@ -209,6 +217,7 @@ async function activatePhysics() {
   gsap.killTweensOf(keychain);
   const RAPIER = await loadRapier();
   if (!physicsActive) return; // user scrolled back up while Rapier was loading
+  lastPhysicsScale = keychain.scale.x;
   keychainPhysics = new KeychainPhysics(RAPIER, keychainInner);
 }
 

@@ -25,24 +25,11 @@ const RING_FOR_SWING = {
 function createSwingPivot(obj, ringObj) {
   const ringWorldPos = new THREE.Vector3();
   ringObj.getWorldPosition(ringWorldPos);
-  const localDirToRing = obj.worldToLocal(ringWorldPos.clone());
 
-  obj.geometry.computeBoundingBox();
-  const bbox = obj.geometry.boundingBox;
-  const topLocal = bbox.getCenter(new THREE.Vector3());
-
-  let dominantAxis = 'y';
-  let largestAbsComponent = -Infinity;
-  for (const axis of ['x', 'y', 'z']) {
-    const value = Math.abs(localDirToRing[axis]);
-    if (value > largestAbsComponent) {
-      largestAbsComponent = value;
-      dominantAxis = axis;
-    }
-  }
-  topLocal[dominantAxis] = localDirToRing[dominantAxis] >= 0
-    ? bbox.max[dominantAxis]
-    : bbox.min[dominantAxis];
+  // Use the ring's exact position in obj's local space as the pivot point.
+  // This ensures the pivot origin sits precisely at the ring mesh center,
+  // preventing visible gaps between pendant and ring at any parent scale.
+  const topLocal = obj.worldToLocal(ringWorldPos.clone());
 
   const originalParent = obj.parent;
   const pivot = new THREE.Group();
