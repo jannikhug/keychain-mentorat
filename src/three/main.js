@@ -24,6 +24,9 @@ let lastPhysicsScale = 1.5;
 let nailActive = false;
 let nailInteracted = false;
 let nailInteraction = null;
+let keySwingTarget = null;
+let wasHanging = false;
+let keyDetached = false;
 const clock = new THREE.Clock();
 
 const hoverRaycaster = new THREE.Raycaster();
@@ -100,6 +103,14 @@ loadKeychain(scene, camera).then((data) => {
   pendantTargets = swingTargets.filter(s => s.obj.name.startsWith('Pendant') || s.obj.name === 'Key');
   nailInteraction = createNailInteraction(camera, keychain, mainRingMesh);
 
+  const kt = swingTargets.find(s => s.obj.name === 'Key');
+  if (kt) {
+    keySwingTarget = kt;
+    keySwingTarget.originalPivotParent = kt.pivot.parent;
+    keySwingTarget.originalPivotPos = kt.pivot.position.clone();
+    keySwingTarget.originalPivotQuat = kt.pivot.quaternion.clone();
+  }
+
   gsap.to(mainRingMesh.rotation, {
     y: mainRingMesh.rotation.y + Math.PI * 2,
     ease: 'none',
@@ -161,6 +172,7 @@ function animate() {
         keychain.position.y = Math.sin(Date.now() * 0.001 * floatSpeed) * floatAmplitude;
       } else {
         nailInteraction.update(dt);
+        drag.update(dt);
       }
 
       if (mouseActive) {
@@ -183,10 +195,39 @@ function animate() {
         }
       }
     }
+
+    // When keychain gets hung: switch drag target to the Key so it can be dragged away
+    if (nailActive && keySwingTarget) {
+      const hanging = nailInteraction?.isHanging() ?? false;
+      if (hanging && !wasHanging) {
+        drag.activate(keySwingTarget.obj, keySwingTarget.pivot, null, onKeyDragStart);
+      }
+      wasHanging = hanging;
+    }
   }
 
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
+}
+
+function onKeyDragStart() {
+  if (keyDetached || !keySwingTarget) return;
+  if (keychainPhysics) keychainPhysics.releaseKey();
+  scene.attach(keySwingTarget.pivot);
+  keyDetached = true;
+  gsap.to(keySwingTarget.pivot.scale, { x: 1.5, y: 1.5, z: 1.5, duration: 0.25, ease: 'power2.out' });
+}
+
+function restoreDetachedKey() {
+  if (!keyDetached || !keySwingTarget) return;
+  gsap.killTweensOf(keySwingTarget.pivot.scale);
+  keySwingTarget.pivot.scale.set(1, 1, 1);
+  keySwingTarget.originalPivotParent.add(keySwingTarget.pivot);
+  keySwingTarget.pivot.position.copy(keySwingTarget.originalPivotPos);
+  keySwingTarget.pivot.quaternion.copy(keySwingTarget.originalPivotQuat);
+  keySwingTarget.obj.position.copy(keySwingTarget.initialLocalPos);
+  keySwingTarget.obj.quaternion.copy(keySwingTarget.initialLocalQuat);
+  keyDetached = false;
 }
 
 // Scroll Triggers
@@ -260,6 +301,8 @@ function deactivateNail() {
   if (!nailInteraction) return;
   nailActive = false;
   nailInteracted = false;
+  wasHanging = false;
+  restoreDetachedKey();
   nailInteraction.deactivate();
   drag.deactivate();
   // Restore X/Z; float animation takes over Y immediately

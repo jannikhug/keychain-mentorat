@@ -169,6 +169,20 @@ export class KeychainPhysics {
     this._joints.push({ joint, a, b, localA, localB, contactsEnabled });
   }
 
+  releaseKey() {
+    const keyEntry = this.entries.get('Key');
+    if (!keyEntry) return;
+    this._joints = this._joints.filter(jd => {
+      if (jd.a === keyEntry || jd.b === keyEntry) {
+        this.world.removeImpulseJoint(jd.joint, true);
+        return false;
+      }
+      return true;
+    });
+    this.world.removeRigidBody(keyEntry.body);
+    this.entries.delete('Key');
+  }
+
   rescale(ratio) {
     for (const entry of this.entries.values()) {
       if (entry.kinematic) continue;
